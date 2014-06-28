@@ -73,11 +73,17 @@ Definition eval_app c left right :=
 .
 
 Definition eval c t : term :=
+    let t := (
+        match t with
+        | Var name => eval_var c name
+        | Abs arg body => eval_abs c arg body
+        | App left_ right_ => eval_app c left_ right_
+        | Bottom r t => Bottom r t
+        end)
+    in
     match t with
-    | Var name => eval_var c name
-    | Abs arg body => eval_abs c arg body
-    | App left_ right_ => eval_app c left_ right_
-    | Bottom r t => Bottom r t
+    | App left_ right_ => eval_cont_terminate c t
+    | _ => t
     end
 .
 
@@ -96,3 +102,4 @@ Definition call_runs t : term :=
 Eval vm_compute in (call_runs (App (Abs "y" (Var "y")) (Var "z"))).
 Eval vm_compute in (call_runs      (App (Abs "x" (Abs "y" (Var "y"))) (Var "z1"))).
 Eval vm_compute in (call_runs (App (App (Abs "x" (Abs "y" (Var "y"))) (Var "z1")) (Var "z2"))).
+Eval vm_compute in (call_runs (App (Abs "x" (App (Var "x") (Var "x"))) (Abs "y" (App (Var "y") (Var "y"))))).
